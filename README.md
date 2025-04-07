@@ -103,4 +103,3 @@ Si el producto ya existe, se incrementa la cantidad.
 
 ## 👨‍💻 Autor
 Lucas Ulibarri
-# entregaBackend
