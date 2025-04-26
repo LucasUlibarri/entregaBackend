@@ -1,82 +1,36 @@
 import express from 'express'
-import CartManager from './CartManager.js';
-import ProductManager from './ProductManager.js';
+import cartRouter from './routes/cart.router.js';
+import productsRouter from './routes/products.router.js';
+import viewsRouter from './routes/views.router.js';
+import { engine } from "express-handlebars";
+import { Server } from "socket.io"
+import http from 'http';
+
 
 const app = express();
-app.use(express.json());
+const server = http.createServer(app)
+const io = new Server(server)
 
-const cartManager = new CartManager();
-const productManager = new ProductManager();
+
+//handlebars
+app.engine('handlebars', engine());
+app.set('view engine', 'handlebars');
+app.set('views', './src/views');
+
+const PORT = 8080;
+app.use(express.json());
+app.use(express.static('public'));
+
 
 //endpoints
+//app.use('/api/products', productsRouter);
+//app.use('/api/carts', cartRouter);
+app.use('/', viewsRouter);
 
-
-//----------API/PRODUCTS---------//
-
-//getProducts
-app.get('/api/products', async(req, res) => {
-    const products = await productManager.getProducts();
-    res.status(200).json({products, message: 'Listado de productos'})
+//websockets
+io.on('connection', (socket) => {
+    console.log('Nuevo usuario conectado');
 })
 
-//getProductById
-app.get('/api/products/:pid', async(req, res) => {
-    const pid = parseInt(req.params.pid)
-    const products = await productManager.getProductById(pid);
-    res.status(200).json({products, message: 'Producto'})
-})
-
-//addProduct
-app.post('/api/products', async(req, res) => {
-    const newProduct = req.body;
-    const products = await productManager.addProduct(newProduct);
-
-    res.status(201).json({products, message: 'Nuevo producto creado'});
-})
-
-//actualizar un producto
-app.put('/api/products/:pid', async(req, res) => {
-    const pid = parseInt(req.params.pid);
-    const updatedData = req.body;
-    const products = await productManager.updateProductById(pid, updatedData);
-    res.status(200).json({products, message: 'Producto actualizado'})
-})
-
-//eliminar el producto seleccionado
-app.delete('/api/products/:pid', async(req, res) => {
-    const pid = parseInt(req.params.pid);
-    const products = await productManager.deleteProductById(pid);
-    res.status(200).json({products, message: 'Producto eliminado'})
-})
-
-//------ API/CART------------//
-
-//addCart
-app.post('/api/carts', async(req, res) => {
-    const carts = await cartManager.addCart();
-    res.status(201).json({carts, message: 'Nuevo carrito creado'});
-});
-
-//getProductsInCartById
-app.get('/api/carts/:cid', async(req, res) => {
-    const cid = req.params.cid;
-    const products = await cartManager.getProductsInCartById(cid);
-    //resolver el prodcuts con postman
-    res.status(200).json({products, message: 'Lista de productos'});
-});
-
-//addProductInCart
-app.post('/api/carts/:cid/product/:pid', async(req, res) => {
-    const cid = req.params.cid;
-    const pid = parseInt(req.params.pid)
-    const quantity = req.body.quantity;
-
-    const carts = await cartManager.addProductInCart(cid, pid, quantity);
-    res.status(200).json({carts, message: 'Nuevo producto añadido'});
-});
-
-//-------- puerto ------
-
-app.listen(8080, () => {
-    console.log('Servidor iniciado en el puerto 8080');
-});
+//inicio Server
+server.listen(PORT, () => console.log(`Servidor iniciado en: http://localhost:${PORT}`));
