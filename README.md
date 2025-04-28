@@ -1,105 +1,116 @@
-# 📦 Entrega N°1 - Servidor de Productos y Carritos
+# 📦 Pre-Entrega N°2 – Productos en Tiempo Real con WebSockets
 
 ## 📝 Descripción General
-Este proyecto consiste en un servidor hecho con **Node.js** y **Express** que permite gestionar un catálogo de productos y carritos de compra.  
-Los datos se almacenan en archivos `.json` utilizando el módulo `fs`.
+En esta segunda pre-entrega hemos extendido la entrega anterior para que la aplicación de **productos y carritos** trabaje en **tiempo real** usando **Socket.IO** y **Handlebars**. Ahora existe una vista dedicada (`/realtimeproducts`) donde:
 
-## ⚙️ Requisitos Técnicos
-- Node.js
-- Express
-- File System (fs)
+- Al agregar un producto por formulario, este aparece inmediatamente sin recargar la página.  
+- Al eliminar un producto con el botón “Eliminar”, desaparece al instante del listado.
 
-## 🚀 Cómo ejecutar el proyecto
+---
 
-1. Clonar el repositorio:
-   ```bash
-   git clone [URL-del-repo]
-   cd [nombre-del-proyecto]
-   ```
+## 🔄 Cambios Realizados
 
-2. Instalar dependencias:
+1. **Integración de Socket.IO**  
+   - En `src/app.js` creamos el servidor HTTP y lo enlazamos a Socket.IO:
+     ```js
+     const server = http.createServer(app);
+     const io = new Server(server);
+     ```
+   - Agregamos en `io.on('connection')` dos listeners:
+     - `newProduct` → llama a `ProductManager.addProduct()` y emite `productAdded`.  
+     - `deleteProduct` → llama a `ProductManager.deleteProductById()` y emite `productDeleted`.  
+
+2. **Nueva vista Handlebars `/realtimeproducts`**  
+   - Archivo: `src/views/realTimeProducts.handlebars`  
+   - Contiene:
+     - Un formulario con `id="formNewProduct"` para emitir vía WebSocket.  
+     - Un `<ul id="productsList">` que renderiza `{{#each products}}` con `<li data-id="{{this.id}}">…<button class="deleteProductBtn">Eliminar</button>`.  
+
+3. **Router de vistas actualizado**  
+   - En `src/routes/views.router.js` se agregó:
+     ```js
+     router.get('/realtimeproducts', async (req, res) => {
+       const products = await productManager.getProducts();
+       res.render('realTimeProducts', { products });
+     });
+     ```
+
+4. **Cliente WebSocket y DOM**  
+   - En `public/js/index.js`:
+     - Se importó `io()` y se abrió la conexión.  
+     - `formNewProduct.submit` → `socket.emit('newProduct', productData)`.  
+     - `socket.on('productAdded')` → añade un `<li>` con `data-id` y botón de eliminar.  
+     - `productsList.click` → al pulsar `.deleteProductBtn`, emite `deleteProduct`.  
+     - `socket.on('productDeleted')` → elimina del DOM el `<li>` correspondiente.  
+
+5. **ProductManager**  
+   - Se mantiene la gestión de lectura/escritura en `products.json`.  
+   - Solo se agregó el método `deleteProductById(id)` para eliminar un producto por su ID.  
+
+---
+
+## 📁 Estructura del Proyecto (resumida)
+
+/entrega
+  /node_modules
+  /public
+    /js
+      index.js                  ← Lógica de Socket.IO y DOM
+  /src
+    /data
+      products.json             ← Base de datos de productos
+      carts.json                ← Base de datos de carritos
+    /routes
+      product.router.js         ← Rutas CRUD de productos
+      cart.router.js            ← Rutas CRUD de carritos
+      views.router.js           ← Rutas de vistas Handlebars
+    /views
+      /layouts
+        main.handlebars         ← Layout principal
+      home.handlebars           ← Vista de catálogo estático
+      realTimeProducts.handlebars ← Vista en tiempo real
+    app.js                      ← Configuración de Express y Socket.IO
+    ProductManager.js           ← Clase para gestionar `products.json`
+    CartManager.js              ← Clase para gestionar `carts.json`
+  .gitignore
+  package.json
+  package-lock.json
+  README.md
+
+
+---
+
+## 🚀 Cómo Probarlo
+
+1. Instala dependencias y arranca el servidor:
    ```bash
    npm install
-   ```
+   npm run dev
 
-3. Ejecutar el servidor:
-   ```bash
-   node src/app.js
-   ```
-   El servidor se inicia en el puerto `8080`.
+2. Abre en el navegador:
+   Catálogo estático: http://localhost:8080/
+   Tiempo real: http://localhost:8080/realtimeproducts
 
-## 📁 Estructura del Proyecto
+3. Agrega productos desde el formulario:
+   Verás el nuevo producto al instante en la lista.
 
-```
-/src
-├── app.js
-├── ProductManager.js
-├── CartManager.js
-├── products.json
-└── carts.json
-```
+4. Elimina un producto con el botón “Eliminar”:
+   Se remueve en tiempo real sin reload.
 
-## 🧪 Endpoints disponibles
+--
 
-### 🔸 Productos - `/api/products`
+✅ Resumen de la Consigna
+✅ Configurar Handlebars y Socket.IO en el mismo servidor.
 
-#### `GET /api/products`
-Devuelve el listado completo de productos.
+✅ Crear home.handlebars con lista estática.
 
-#### `GET /api/products/:pid`
-Devuelve un producto según su ID.
+✅ Crear realTimeProducts.handlebars trabajando solo con WebSockets.
 
-#### `POST /api/products`
-Crea un nuevo producto. El ID se autogenera.  
-**Body requerido:**
-```json
-{
-  "title": "string",
-  "description": "string",
-  "code": "string",
-  "price": number,
-  "status": true,
-  "stock": number,
-  "category": "string",
-  "thumbnails": ["string"]
-}
-```
+✅ Formularios y botones que emiten newProduct y deleteProduct.
 
-#### `PUT /api/products/:pid`
-Actualiza un producto por ID (excepto su `id`).
+✅ Actualización automática del DOM con productAdded y productDeleted.
 
-#### `DELETE /api/products/:pid`
-Elimina un producto según su ID.
+--
 
----
-
-### 🔹 Carritos - `/api/carts`
-
-#### `POST /api/carts`
-Crea un nuevo carrito vacío.
-
-#### `GET /api/carts/:cid`
-Devuelve los productos del carrito con el ID solicitado.
-
-#### `POST /api/carts/:cid/product/:pid`
-Agrega un producto al carrito.  
-Si el producto ya existe, se incrementa la cantidad.  
-**Body requerido:**
-```json
-{
-  "quantity": number
-}
-```
-
----
-
-## 🧠 Consideraciones
-
-- El ID de los productos y carritos se autogenera de forma incremental.
-- Los productos no se repiten en el carrito, se incrementa su cantidad si ya existen.
-- La información persiste en los archivos `products.json` y `carts.json`.
-- La app no tiene frontend, por lo que se recomienda testear con Postman o similar.
-- El código está modularizado y separado en archivos para mayor claridad.
-
-## 👨‍💻 Autor
+👨‍💻 Autor
 Lucas Ulibarri
