@@ -1,44 +1,21 @@
 import express from 'express';
-import Cart from '../models/cart.model.js';
+import {addCart, getCart, addProductToCart, removeProduct, updateCart, clearCart} from '../controllers/carts.controller.js';
 
 const cartRouter = express.Router();
 
-
-cartRouter.post('/', async(req, res) => {
-    try {
-        const cart = new Cart()
-        await cart.save()
-        res.status(201).json({status: 'success', payload: cart});
-    } catch (error) {
-        res.status(500).json({message: error.message});
-    }
-});
-
-cartRouter.get('/:cid', async(req,res) => {
-    try {
-        const cid = req.params.cid;
-        const cart = await Cart.findOne({_id: cid}).populate('products.product');
-        if(!cart) return res.status(404).json({status: 'error', message: 'Carrito no encontrado'});
-        
-        res.status(200).json({status: 'success', payload: cart.products})
-    } catch (error) {
-        res.status(404).json({message: error.message});
-    }
-});
-
-cartRouter.post('/:cid/product/:pid', async(req, res) => {
-    try {
-        const{ cid, pid } = req.params;
-        const {quantity} = req.body;
-        const upadatedCart = await Cart.findOneAndUpdate({_id: cid}, { $push: { products: {product: pid, quantity}}}, {new: true, runValidators: true});
-        if(!upadatedCart) return res.status(404).json({status: 'error', message: 'Carrito no encontrado'})
-
-        res.status(200).json({status: 'success', payload: upadatedCart});
-    } catch (error) {
-        res.status(500).json({message: error.message});
-    }
-});
-
-
+//Crear carrito
+cartRouter.post('/', addCart);
+//Obtener carrito
+cartRouter.get('/:cid', getCart);
+//Agregar producto al carrtio
+cartRouter.post('/:cid/product/:pid', addProductToCart);
+//Sacar producto del carrito x ID
+cartRouter.delete('/:cid/products/:pid', removeProduct);
+// Reemplazar todos los productos del carrito
+cartRouter.put('/:cid', updateCart);
+// Actualizar cantidad de un producto x ID
+cartRouter.put('/:cid/products/:pid', updateCart);
+// Vaciar el carrito completo
+cartRouter.delete('/:cid', clearCart);
 
 export default cartRouter;

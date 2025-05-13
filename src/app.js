@@ -4,19 +4,15 @@ import cartRouter from './routes/cart.router.js';
 import productsRouter from './routes/products.router.js';
 import viewsRouter from './routes/views.router.js';
 import { engine } from "express-handlebars";
-import { Server } from "socket.io"
 import http from 'http';
-import ProductManager from './ProductManager.js';
 import connectMongoDB from './config/db.js';
-
-
 
 //inicializando variables de entorno
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app)
-const io = new Server(server)
+
 
 //handlebars
 app.engine('handlebars', engine());
@@ -34,31 +30,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/carts', cartRouter);
 app.use('/', viewsRouter);
 
-//websockets
-const productManager = new ProductManager('./src/data/products.json');
 
-io.on('connection', (socket) => {
-    console.log('Nuevo usuario conectado');
-
-    socket.on('newProduct', async(productData) => {
-        try{
-            const newProduct = await productManager.addProduct(productData);
-
-            io.emit('productAdded', newProduct);
-        }catch (error){
-            console.error('Error al añadir el producto')
-        }
-    });
-
-    socket.on('deleteProduct', async(productId) => {
-        try{
-            await productManager.deleteProductById(productId);
-            io.emit('productDeleted', productId);
-        }catch{
-            console.error('Error al eliminar el producto', error.message);
-        }
-    });
-})
 
 //inicio Server
 server.listen(PORT, () => console.log(`Servidor iniciado en: http://localhost:${PORT}`));
