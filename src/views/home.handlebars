@@ -3,7 +3,17 @@
     <h2>Lista de productos</h2>
     <ul>
         {{#each products}}
-            <li>{{this.title}} - ${{this.price}}</li>
+            {{> productCard}}
         {{/each}}
     </ul>
+
+    {{#if hasPrevPage}}
+        <a href="/?page={{prevPage}}">Anterior</a>
+    {{/if}}
+
+    <p>Página <strong>{{page}}</strong> de {{totalPages}}</p>
+
+    {{#if hasNextPage}}
+        <a href="/?page={{nextPage}}">Siguiente</a>
+    {{/if}}
 </div>
