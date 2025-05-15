@@ -21,11 +21,11 @@ const __dirname = path.dirname(__filename);
 //handlebars
 app.engine('handlebars', engine({
     defaultLayout: 'main',
-    layoutsDir: path.join(__dirname, 'src/views/layouts'),
-    partialsDir: path.join(__dirname, 'src/views/partials')
+    layoutsDir: path.join(__dirname, 'views/layouts'),
+    partialsDir: path.join(__dirname, 'views/partials')
 }));
 app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, './src/views'));
+app.set('views', path.join(__dirname, 'views'));
 
 
 const PORT = process.env.PORT;

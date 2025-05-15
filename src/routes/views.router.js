@@ -1,16 +1,16 @@
 import express from 'express';
-import { getAllProducts } from '../controllers/products.controller.js';
+import Product from '../models/product.model.js';
 
 const viewsRouter = express.Router();
 
 viewsRouter.get('/', async(req, res) => {
     try{
         const page = parseInt(req.query.page);
-        const limit = 10;
+        const limit = parseInt(req.query.limit);
 
-        const products = await getAllProducts({limit, page, lean: true});
+        const products = await Product.paginate({}, {limit, page, lean: true});
         
-        res.render('home', {products});
+        res.render('home', {...products});
     }catch(error){
         res.status(500).send({message: error.message})
     }
@@ -21,9 +21,9 @@ viewsRouter.get('/realtimeproducts', async(req, res) => {
         const page = parseInt(req.query.page);
         const limit = 10;
 
-        const products = await getAllProducts({limit, page, lean: true});
+        const products = await Product.paginate({}, {limit, page, lean: true});
 
-        res.render('realTimeProducts', {products});
+        res.render('realTimeProducts', {...products});
     }catch(error){
         res.status(500).send({message: error.message})
     }
