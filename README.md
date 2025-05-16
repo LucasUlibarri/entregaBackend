@@ -1,116 +1,92 @@
-# 📦 Pre-Entrega N°2 – Productos en Tiempo Real con WebSockets
+# Entrega Final Backend 1
 
-## 📝 Descripción General
-En esta segunda pre-entrega hemos extendido la entrega anterior para que la aplicación de **productos y carritos** trabaje en **tiempo real** usando **Socket.IO** y **Handlebars**. Ahora existe una vista dedicada (`/realtimeproducts`) donde:
+## Descripción
+Servidor Node.js con Express, MongoDB y Handlebars para gestión de productos y carritos.
 
-- Al agregar un producto por formulario, este aparece inmediatamente sin recargar la página.  
-- Al eliminar un producto con el botón “Eliminar”, desaparece al instante del listado.
+## Tecnologías
+- Node.js  
+- Express  
+- MongoDB (Mongoose)  
+- Handlebars  
+- mongoose-paginate-v2  
 
----
+## Instalación
+1. Clonar el repositorio
+2. Ejecutar `npm install`
 
-## 🔄 Cambios Realizados
+## Variables de entorno
+Crear un archivo `.env` en la raíz con el siguiente contenido:
 
-1. **Integración de Socket.IO**  
-   - En `src/app.js` creamos el servidor HTTP y lo enlazamos a Socket.IO:
-     ```js
-     const server = http.createServer(app);
-     const io = new Server(server);
-     ```
-   - Agregamos en `io.on('connection')` dos listeners:
-     - `newProduct` → llama a `ProductManager.addProduct()` y emite `productAdded`.  
-     - `deleteProduct` → llama a `ProductManager.deleteProductById()` y emite `productDeleted`.  
+PORT=8080  
+URI_MONGODB=<tu_connection_string>
 
-2. **Nueva vista Handlebars `/realtimeproducts`**  
-   - Archivo: `src/views/realTimeProducts.handlebars`  
-   - Contiene:
-     - Un formulario con `id="formNewProduct"` para emitir vía WebSocket.  
-     - Un `<ul id="productsList">` que renderiza `{{#each products}}` con `<li data-id="{{this.id}}">…<button class="deleteProductBtn">Eliminar</button>`.  
+## Scripts
+- `npm run dev`  → Ejecuta el servidor con Nodemon  
+- `npm start`    → Ejecuta el servidor en modo producción  
 
-3. **Router de vistas actualizado**  
-   - En `src/routes/views.router.js` se agregó:
-     ```js
-     router.get('/realtimeproducts', async (req, res) => {
-       const products = await productManager.getProducts();
-       res.render('realTimeProducts', { products });
-     });
-     ```
+## Endpoints API
 
-4. **Cliente WebSocket y DOM**  
-   - En `public/js/index.js`:
-     - Se importó `io()` y se abrió la conexión.  
-     - `formNewProduct.submit` → `socket.emit('newProduct', productData)`.  
-     - `socket.on('productAdded')` → añade un `<li>` con `data-id` y botón de eliminar.  
-     - `productsList.click` → al pulsar `.deleteProductBtn`, emite `deleteProduct`.  
-     - `socket.on('productDeleted')` → elimina del DOM el `<li>` correspondiente.  
+### Productos
+- GET /api/products  
+- GET /api/products/:pid  
+- POST /api/products  
+- PUT /api/products/:pid  
+- DELETE /api/products/:pid  
 
-5. **ProductManager**  
-   - Se mantiene la gestión de lectura/escritura en `products.json`.  
-   - Solo se agregó el método `deleteProductById(id)` para eliminar un producto por su ID.  
+### Carrito
+- POST /api/carts  
+- GET /api/carts/:cid  
+- POST /api/carts/:cid/products/:pid  
+- DELETE /api/carts/:cid/products/:pid  
+- DELETE /api/carts/:cid  
 
----
+## Vistas con Handlebars
+- `/` → Página principal con productos paginados  
+- `/products/:pid` → Detalle del producto  
+- `/carts/:cid` → Detalle del carrito  
 
-## 📁 Estructura del Proyecto (resumida)
+## Estructura de archivos
 
-/entrega
-  /node_modules
-  /public
-    /js
-      index.js                  ← Lógica de Socket.IO y DOM
-  /src
-    /data
-      products.json             ← Base de datos de productos
-      carts.json                ← Base de datos de carritos
-    /routes
-      product.router.js         ← Rutas CRUD de productos
-      cart.router.js            ← Rutas CRUD de carritos
-      views.router.js           ← Rutas de vistas Handlebars
-    /views
-      /layouts
-        main.handlebars         ← Layout principal
-      home.handlebars           ← Vista de catálogo estático
-      realTimeProducts.handlebars ← Vista en tiempo real
-    app.js                      ← Configuración de Express y Socket.IO
-    ProductManager.js           ← Clase para gestionar `products.json`
-    CartManager.js              ← Clase para gestionar `carts.json`
-  .gitignore
-  package.json
-  package-lock.json
-  README.md
+├── .env
+├── .gitignore
+├── README.md
+├── package-lock.json
+├── package.json
+├── public
+│   └── js
+│       ├── cart.js
+│       ├── header.js
+│       ├── index.js
+│       └── productDetail.js
+└── src
+    ├── app.js
+    ├── config
+    │   └── db.js
+    ├── controllers
+    │   ├── carts.controller.js
+    │   └── products.controller.js
+    ├── models
+    │   ├── cart.model.js
+    │   └── product.model.js
+    ├── routes
+    │   ├── cart.router.js
+    │   ├── products.router.js
+    │   └── views.router.js
+    └── views
+        ├── cartDetail.handlebars
+        ├── home.handlebars
+        ├── layouts
+        │   └── main.handlebars
+        ├── partials
+        │   ├── header.handlebars
+        │   └── productCard.handlebars
+        ├── productDetail.handlebars
+        └── realTimeProducts.handlebars
 
 
----
-
-## 🚀 Cómo Probarlo
-
-1. Instala dependencias y arranca el servidor:
-   ```bash
-   npm install
-   npm run dev
-
-2. Abre en el navegador:
-   Catálogo estático: http://localhost:8080/
-   Tiempo real: http://localhost:8080/realtimeproducts
-
-3. Agrega productos desde el formulario:
-   Verás el nuevo producto al instante en la lista.
-
-4. Elimina un producto con el botón “Eliminar”:
-   Se remueve en tiempo real sin reload.
-
---
-
-✅ Resumen de la Consigna
-✅ Configurar Handlebars y Socket.IO en el mismo servidor.
-
-✅ Crear home.handlebars con lista estática.
-
-✅ Crear realTimeProducts.handlebars trabajando solo con WebSockets.
-
-✅ Formularios y botones que emiten newProduct y deleteProduct.
-
-✅ Actualización automática del DOM con productAdded y productDeleted.
-
---
-
-👨‍💻 Autor
-Lucas Ulibarri
+## Funcionalidades
+- CRUD completo de productos y carritos  
+- Paginación, filtrado y ordenamiento por categoría y precio  
+- Vistas dinámicas con Handlebars y uso de parciales  
+- Agregar productos al carrito desde la vista de detalle  
+- Vista de carrito con ítems, subtotales y total  
