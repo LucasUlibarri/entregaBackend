@@ -1,0 +1,15 @@
+<a href="/">Volver</a>
+<div>
+    <img src="{{thumbnail}}" alt="{{title}}">
+    <h2>{{title}}</h2>
+    <p>{{description}}</p>
+    <p>${{price}}</p>
+    <ul>
+        {{#each tags}}
+                <li>{{this}}</li>
+        {{/each}}
+    </ul>
+    <button id="add-to-cart-btn" data-pid="{{_id}}">Agregar al carrito</button>
+</div>
+
+<script src="/js/productDetail.js"></script>

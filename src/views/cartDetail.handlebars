@@ -1,0 +1,19 @@
+<div>
+    <h2>Mi carrito</h2>
+    <button id="clear-cart-btn" data-cid="{{cid}}">🗑️ Eliminar carrito</button>
+    <ul>
+        {{#each products}}
+        <li>
+            <div>
+            <h3>{{title}}</h3>
+            <p>${{price}}</p>
+            <p>x{{quantity}}</p>
+            </div>
+            <p><strong>${{subtotal}}</strong></p>
+            <button class="remove-btn"  data-pid="{{_id}}">Eliminar</button>
+        </li>
+        {{/each}}
+    </ul>
+</div>
+
+<script src="/js/cart.js"></script>

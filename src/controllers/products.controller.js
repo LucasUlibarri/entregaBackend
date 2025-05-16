@@ -2,7 +2,7 @@ import Product from '../models/product.model.js';
 
 const getAllProducts = async(req, res) => {
     try {
-        const {limit = 10, page = 1} = req.query;
+        const {limit = 6, page = 1} = req.query;
         
         const products = await Product.paginate({}, {limit, page, lean: true});
         res.status(200).json({status: 'success', payload: products});

@@ -8,7 +8,7 @@ cartRouter.post('/', addCart);
 //Obtener carrito
 cartRouter.get('/:cid', getCart);
 //Agregar producto al carrtio
-cartRouter.post('/:cid/product/:pid', addProductToCart);
+cartRouter.post('/:cid/products/:pid', addProductToCart);
 //Sacar producto del carrito x ID
 cartRouter.delete('/:cid/products/:pid', removeProduct);
 // Reemplazar todos los productos del carrito
